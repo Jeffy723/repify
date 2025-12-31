@@ -1,6 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { supabase } from "../../lib/supabase";
 
 export default function Home() {
@@ -18,22 +19,10 @@ export default function Home() {
     const user = auth?.user;
     if (!user) return;
 
-    // Fetch profile (name + semester_id)
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
+    const { data: prof } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     setProfile(prof);
 
-    // Fetch active semester
-    const { data: sem } = await supabase
-      .from("semesters")
-      .select("*")
-      .eq("is_active", true)
-      .maybeSingle();
-
+    const { data: sem } = await supabase.from("semesters").select("*").eq("is_active", true).maybeSingle();
     setSemester(sem);
     setLoading(false);
   };
@@ -41,80 +30,116 @@ export default function Home() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
-        Welcome {profile?.name ?? "CR"} 🎓
-      </Text>
-      <Text style={styles.subtitle}>
-        Manage class assignments below
-      </Text>
-
-      {/* NO SEMESTER YET */}
-      {!semester && (
-        <>
-          <Text style={styles.warning}>⚠️ No active semester found</Text>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: "#FF9800" }]}
-            onPress={() => router.push("/add-semester")}
-          >
-            <Text style={styles.buttonText}>➕ Add Semester</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        
+        {/* Header Section */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>Welcome back,</Text>
+            <Text style={styles.userName}>{profile?.name ?? "CR"}</Text>
+          </View>
+          <TouchableOpacity style={styles.profileCircle} onPress={() => router.push("/profile")}>
+            <Ionicons name="person" size={24} color="#6366f1" />
           </TouchableOpacity>
-        </>
-      )}
+        </View>
 
-      {/* WHEN SEMESTER EXISTS */}
-      {semester && (
-        <>
-          <Text style={styles.semesterText}>
-            📘 Active Semester: {semester.name}
-          </Text>
+        {/* Active Semester Card */}
+        <View style={styles.statCard}>
+          <View style={styles.statInfo}>
+            <Text style={styles.statLabel}>Current Semester</Text>
+            <Text style={styles.statValue}>
+              {semester ? semester.name : "None Active"}
+            </Text>
+          </View>
+          <View style={[styles.iconBox, { backgroundColor: '#e0e7ff' }]}>
+            <Ionicons name="school-outline" size={28} color="#6366f1" />
+          </View>
+        </View>
 
-          <TouchableOpacity
-            style={styles.button}
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+
+        {/* Action Grid */}
+        <View style={styles.actionGrid}>
+          <TouchableOpacity 
+            style={[styles.actionCard, { backgroundColor: '#6366f1' }]} 
             onPress={() => router.push("/add-assignment")}
           >
-            <Text style={styles.buttonText}>➕ Add Assignment</Text>
+            <Ionicons name="add-circle" size={32} color="white" />
+            <Text style={styles.actionText}>Add Assignment</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: "#4CAF50" }]}
+          <TouchableOpacity 
+            style={[styles.actionCard, { backgroundColor: '#10b981' }]} 
             onPress={() => router.push("/assignments")}
           >
-            <Text style={styles.buttonText}>📚 View Assignments</Text>
+            <Ionicons name="library" size={32} color="white" />
+            <Text style={styles.actionText}>View Tasks</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: "#A020F0" }]}
+          <TouchableOpacity 
+            style={[styles.actionCard, { backgroundColor: '#f59e0b' }]} 
             onPress={() => router.push("/semesters")}
           >
-            <Text style={styles.buttonText}>🔁 Switch Semester</Text>
+            <Ionicons name="repeat" size={32} color="white" />
+            <Text style={styles.actionText}>Manage Sem</Text>
           </TouchableOpacity>
-        </>
-      )}
-    </View>
+
+          <TouchableOpacity 
+            style={[styles.actionCard, { backgroundColor: '#ef4444' }]} 
+            onPress={() => router.push("/profile")}
+          >
+            <Ionicons name="settings" size={32} color="white" />
+            <Text style={styles.actionText}>Settings</Text>
+          </TouchableOpacity>
+        </View>
+
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: "center", alignItems: "center" },
+  container: { flex: 1, backgroundColor: "#f8fafc" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 32, fontWeight: "bold", marginBottom: 8 },
-  subtitle: { fontSize: 16, opacity: 0.6, marginBottom: 30 },
-  warning: { fontSize: 16, color: "red", marginBottom: 20 },
-  semesterText: { fontSize: 18, marginBottom: 30 },
-  button: {
-    width: "80%",
-    padding: 18,
-    borderRadius: 10,
-    backgroundColor: "#007AFF",
-    marginBottom: 15,
+  scrollContent: { padding: 20 },
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginTop: 20, 
+    marginBottom: 30 
   },
-  buttonText: { color: "white", fontSize: 18, fontWeight: "600", textAlign: "center" },
+  greeting: { fontSize: 16, color: "#64748b", fontWeight: "500" },
+  userName: { fontSize: 28, fontWeight: "bold", color: "#1e293b" },
+  profileCircle: { 
+    width: 50, height: 50, borderRadius: 25, backgroundColor: "white", 
+    justifyContent: 'center', alignItems: 'center', elevation: 3, shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4
+  },
+  statCard: {
+    backgroundColor: "white", padding: 20, borderRadius: 20, flexDirection: 'row',
+    alignItems: 'center', justifyContent: 'space-between', marginBottom: 30,
+    elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 10
+  },
+  statInfo: { flex: 1, marginRight: 12 },
+  statLabel: { fontSize: 14, color: "#94a3b8", marginBottom: 4 },
+  statValue: { fontSize: 20, fontWeight: "bold", color: "#1e293b" },
+  iconBox: { padding: 12, borderRadius: 15 },
+  sectionTitle: { fontSize: 18, fontWeight: "700", color: "#1e293b", marginBottom: 15 },
+  actionGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  actionCard: {
+    width: '47%', height: 120, borderRadius: 20, padding: 15,
+    justifyContent: 'center', alignItems: 'center', marginBottom: 20,
+    elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15, shadowRadius: 8
+  },
+  actionText: { color: "white", marginTop: 10, fontWeight: "600", fontSize: 14 }
 });
