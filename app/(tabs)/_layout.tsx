@@ -1,16 +1,26 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { useTheme } from "../context/ThemeContext"; // Import global theme
 
 export default function TabsLayout() {
+  const { COLORS } = useTheme(); // Access global colors
+
   return (
     <Tabs 
       screenOptions={{ 
         headerShown: false,
-        tabBarActiveTintColor: '#6366f1', // Matches your Indigo theme
-        tabBarInactiveTintColor: '#94a3b8',
+        // Use global primary color for active tab
+        tabBarActiveTintColor: COLORS.primary, 
+        // Use global muted color for inactive tab
+        tabBarInactiveTintColor: COLORS.muted,
         tabBarStyle: {
           height: 60,
           paddingBottom: 10,
+          // Use global card color for the bar background
+          backgroundColor: COLORS.card,
+          // Add a subtle border that matches the theme
+          borderTopColor: COLORS.border,
+          borderTopWidth: 1,
         }
       }}
     >
@@ -23,7 +33,7 @@ export default function TabsLayout() {
         }} 
       />
 
-      {/* 2. ASSIGNMENTS TAB - This points to the assignments folder/index.tsx */}
+      {/* 2. ASSIGNMENTS TAB */}
       <Tabs.Screen 
         name="assignments" 
         options={{ 
@@ -41,8 +51,7 @@ export default function TabsLayout() {
         }} 
       />
 
-      {/* HIDE UNWANTED SCREENS FROM BOTTOM BAR */}
-      {/* These will still work as routes, but won't show icons */}
+      {/* HIDE UNWANTED SCREENS */}
       <Tabs.Screen 
         name="index" 
         options={{ href: null }} 
