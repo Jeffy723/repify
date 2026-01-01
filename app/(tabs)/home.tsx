@@ -53,9 +53,7 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -142,6 +140,7 @@ export default function Home() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
         }
       >
+        {/* Header */}
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Welcome back,</Text>
@@ -153,6 +152,7 @@ export default function Home() {
           </TouchableOpacity>
         </View>
 
+        {/* Active Semester Card */}
         <View style={styles.statCard}>
           <View>
             <Text style={styles.statLabel}>Current Semester</Text>
@@ -164,6 +164,7 @@ export default function Home() {
         <Text style={styles.sectionTitle}>Quick Actions</Text>
 
         <View style={styles.actionGrid}>
+          {/* Add Task */}
           <TouchableOpacity style={styles.actionCard} onPress={() => router.push("/add-assignment")}>
             <View style={[styles.iconCircle, { backgroundColor: "rgba(34,197,94,0.15)" }]}>
               <Ionicons name="add" size={22} color="#22c55e" />
@@ -172,6 +173,7 @@ export default function Home() {
             <Text style={styles.actionSubtext}>Create new</Text>
           </TouchableOpacity>
 
+          {/* View Tasks */}
           <TouchableOpacity style={styles.actionCard} onPress={() => router.push("/assignments")}>
             <View style={[styles.iconCircle, { backgroundColor: "rgba(56,189,248,0.15)" }]}>
               <Ionicons name="list" size={22} color="#38bdf8" />
@@ -180,20 +182,22 @@ export default function Home() {
             <Text style={styles.actionSubtext}>Check deadlines</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push("/semesters")}>
+          {/* Subjects */}
+          <TouchableOpacity style={styles.actionCard} onPress={() => router.push("/subjects")}>
             <View style={[styles.iconCircle, { backgroundColor: "rgba(245,158,11,0.15)" }]}>
-              <Ionicons name="layers" size={22} color="#f59e0b" />
+              <Ionicons name="book-outline" size={22} color="#f59e0b" />
             </View>
-            <Text style={styles.actionText}>Semesters</Text>
-            <Text style={styles.actionSubtext}>Edit periods</Text>
+            <Text style={styles.actionText}>Subjects</Text>
+            <Text style={styles.actionSubtext}>Manage courses</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push("/profile")}>
+          {/* Manage Semesters */}
+          <TouchableOpacity style={styles.actionCard} onPress={() => router.push("/semesters")}>
             <View style={[styles.iconCircle, { backgroundColor: "rgba(99,102,241,0.15)" }]}>
-              <Ionicons name="settings-outline" size={22} color="#6366f1" />
+              <Ionicons name="layers" size={22} color="#6366f1" />
             </View>
-            <Text style={styles.actionText}>Settings</Text>
-            <Text style={styles.actionSubtext}>Edit profile</Text>
+            <Text style={styles.actionText}>Manage Semesters</Text>
+            <Text style={styles.actionSubtext}>Activate / Add new</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
