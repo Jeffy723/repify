@@ -1,75 +1,197 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { SafeAreaView, Text, TouchableOpacity, FlatList, View, StyleSheet } from "react-native";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
 import { supabase } from "../../lib/supabase";
 
 export default function Subjects() {
-  const router = useRouter();
-  const [subjects, setSubjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [semId, setSemId] = useState<string | null>(null);
+  const { semesterId } = useLocalSearchParams<{ semesterId?: string }>();
 
-  useEffect(() => { load(); }, []);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [semester, setSemester] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    setLoading(true);
 
-    const { data: prof } = await supabase.from("profiles").select("semester_id").eq("id", user.id).single();
-    if (!prof || !prof.semester_id) {
-      setSemId(null);
-      setSubjects([]);
+    try {
+      let semId = semesterId;
+
+      // 1️⃣ If no semesterId passed, use active semester
+      if (!semId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("semester_id")
+          .eq("id", user.id)
+          .single();
+
+        semId = profile?.semester_id ?? null;
+      }
+
+      if (!semId) {
+        setSemester(null);
+        setSubjects([]);
+        return;
+      }
+
+      // 2️⃣ Get semester info
+      const { data: sem } = await supabase
+        .from("semesters")
+        .select("*")
+        .eq("id", semId)
+        .single();
+
+      setSemester(sem);
+
+      // 3️⃣ Get subjects
+      const { data: list } = await supabase
+        .from("subjects")
+        .select("*")
+        .eq("semester_id", semId)
+        .order("name");
+
+      setSubjects(list ?? []);
+    } catch (e: any) {
+      Alert.alert("Error", e.message);
+    } finally {
       setLoading(false);
-      return;
     }
-    setSemId(prof.semester_id);
-
-    const { data } = await supabase
-      .from("subjects")
-      .select("*")
-      .eq("semester_id", prof.semester_id)
-      .order("created_at", { ascending: false });
-
-    setSubjects(data ?? []);
-    setLoading(false);
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [semesterId])
+  );
+
+  const deleteSubject = async (id: string) => {
+    Alert.alert(
+      "Delete Subject",
+      "Are you sure you want to delete this subject?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            await supabase.from("subjects").delete().eq("id", id);
+            load();
+          }
+        }
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Subjects</Text>
-        <TouchableOpacity
-          onPress={() => router.push({ pathname: "/subjects/add", params: { sem_id: semId ?? undefined } } as any)}
-        >
-          <Ionicons name="add" size={26} color="#6366f1" />
-        </TouchableOpacity>
-      </View>
+        <Text style={styles.title}>
+          {semester ? semester.name : "No Active Semester"}
+        </Text>
 
-      <FlatList
-        data={subjects}
-        contentContainerStyle={{ padding: 20 }}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        {semester && (
           <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push({ pathname: "/subjects/[id]/assignments", params: { id: item.id } } as any)}
-          >
-            <Text style={styles.subjectText}>{item.name}</Text>
+  onPress={() =>
+    router.push({
+      pathname: "/subjects/add",
+      params: { sem_id: semester.id }
+    })
+  }
+>
+
+            <Ionicons name="add" size={26} color="#6366f1" />
           </TouchableOpacity>
         )}
-      />
+      </View>
+
+      {!semester ? (
+        <Text style={styles.empty}>
+          Activate a semester to see subjects
+        </Text>
+      ) : (
+        <FlatList
+          data={subjects}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ padding: 20 }}
+          ListEmptyComponent={
+            <Text style={styles.empty}>
+              No subjects added yet
+            </Text>
+          }
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() =>
+                router.push({
+                  pathname: "/subjects/[id]/assignments",
+                  params: { id: item.id }
+                })
+              }
+            >
+              <Text style={styles.subjectName}>{item.name}</Text>
+
+              <TouchableOpacity onPress={() => deleteSubject(item.id)}>
+                <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f8fafc" },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 20, backgroundColor: "white" },
-  headerTitle: { fontSize: 20, fontWeight: "bold", color: "#1e293b" },
-  card: { backgroundColor: "white", padding: 18, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: "#e2e8f0" },
-  subjectText: { fontSize: 18, color: "#1e293b" }
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+
+  header: {
+    padding: 24,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+  title: { fontSize: 24, fontWeight: "bold", color: "#1e293b" },
+
+  card: {
+    backgroundColor: "white",
+    padding: 18,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+
+  subjectName: { fontSize: 16, fontWeight: "600", color: "#334155" },
+
+  empty: {
+    textAlign: "center",
+    marginTop: 60,
+    color: "#64748b",
+    fontSize: 16
+  }
 });
