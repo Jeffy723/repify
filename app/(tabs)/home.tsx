@@ -20,16 +20,14 @@ export default function Home() {
 
   const [profile, setProfile] = useState<any>(null);
   const [semester, setSemester] = useState<any>(null);
+  const [subjects, setSubjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+      if (!user) return;
 
       const { data: prof } = await supabase
         .from("profiles")
@@ -43,19 +41,21 @@ export default function Home() {
         .eq("is_active", true)
         .maybeSingle();
 
+      const { data: subs } = await supabase
+        .from("subjects")
+        .select("id,name,semester_id")
+        .eq("semester_id", sem?.id);
+
       setProfile(prof);
       setSemester(sem);
-    } catch (error) {
-      console.error("Error loading home data:", error);
+      setSubjects(subs ?? []);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -122,8 +122,7 @@ export default function Home() {
       marginBottom: 8
     },
 
-    actionText: { color: COLORS.text, fontWeight: "600", fontSize: 14 },
-    actionSubtext: { color: COLORS.muted, fontSize: 12 }
+    actionText: { color: COLORS.text, fontWeight: "600", fontSize: 14 }
   });
 
   if (loading) {
@@ -138,9 +137,7 @@ export default function Home() {
     <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >
         <View style={styles.header}>
           <View>
@@ -161,40 +158,21 @@ export default function Home() {
           <Ionicons name="school-outline" size={28} color={COLORS.primary} />
         </View>
 
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={styles.sectionTitle}>Subjects</Text>
 
         <View style={styles.actionGrid}>
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push("/add-assignment")}>
-            <View style={[styles.iconCircle, { backgroundColor: "rgba(34,197,94,0.15)" }]}>
-              <Ionicons name="add" size={22} color="#22c55e" />
-            </View>
-            <Text style={styles.actionText}>Add Task</Text>
-            <Text style={styles.actionSubtext}>Create new</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push("/assignments")}>
-            <View style={[styles.iconCircle, { backgroundColor: "rgba(56,189,248,0.15)" }]}>
-              <Ionicons name="list" size={22} color="#38bdf8" />
-            </View>
-            <Text style={styles.actionText}>View Tasks</Text>
-            <Text style={styles.actionSubtext}>Check deadlines</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push("/semesters")}>
-            <View style={[styles.iconCircle, { backgroundColor: "rgba(245,158,11,0.15)" }]}>
-              <Ionicons name="layers" size={22} color="#f59e0b" />
-            </View>
-            <Text style={styles.actionText}>Semesters</Text>
-            <Text style={styles.actionSubtext}>Edit periods</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push("/profile")}>
-            <View style={[styles.iconCircle, { backgroundColor: "rgba(99,102,241,0.15)" }]}>
-              <Ionicons name="settings-outline" size={22} color="#6366f1" />
-            </View>
-            <Text style={styles.actionText}>Settings</Text>
-            <Text style={styles.actionSubtext}>Edit profile</Text>
-          </TouchableOpacity>
+          {subjects.map(sub => (
+            <TouchableOpacity
+              key={sub.id}
+              style={styles.actionCard}
+              onPress={() => router.push(`/subject/${sub.id}`)}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: "rgba(56,189,248,0.15)" }]}>
+                <Ionicons name="book-outline" size={22} color={COLORS.primary} />
+              </View>
+              <Text style={styles.actionText}>{sub.name}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
