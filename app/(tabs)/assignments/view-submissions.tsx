@@ -118,7 +118,7 @@ export default function ViewSubmissions() {
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => renderStudent(item)}
               contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator
             />
           )}
         </View>
@@ -139,7 +139,7 @@ export default function ViewSubmissions() {
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => renderStudent(item)}
               contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator
             />
           )}
         </View>
@@ -180,8 +180,7 @@ const styles = StyleSheet.create({
   },
 
   section: {
-    flex: 1,              // 🔥 THIS is the key
-    borderRadius: 12
+    flex: 1
   },
 
   sectionTitle: {
