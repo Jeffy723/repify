@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { supabase } from "../../../lib/supabase";
 import { useTheme } from "../../context/ThemeContext";
@@ -20,6 +20,7 @@ export default function ViewSubmissions() {
 
   const [submitted, setSubmitted] = useState<any[]>([]);
   const [notSubmitted, setNotSubmitted] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"submitted" | "pending">("pending");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,13 +40,13 @@ export default function ViewSubmissions() {
         .eq("assignment_id", assignmentId);
 
       const submittedSet = new Set(
-        submissions?.filter(s => s.submitted).map(s => s.student_id)
+        submissions?.filter((s) => s.submitted).map((s) => s.student_id)
       );
 
       const submittedList: any[] = [];
       const notSubmittedList: any[] = [];
 
-      students?.forEach(student => {
+      students?.forEach((student) => {
         if (submittedSet.has(student.id)) {
           submittedList.push(student);
         } else {
@@ -62,16 +63,16 @@ export default function ViewSubmissions() {
     }
   };
 
-  const renderStudent = (item: any) => (
+  const data = activeTab === "submitted" ? submitted : notSubmitted;
+
+  const renderStudent = ({ item }: any) => (
     <View
       style={[
-        styles.row,
-        { backgroundColor: COLORS.card, borderColor: COLORS.border }
+        styles.card,
+        { backgroundColor: COLORS.card, borderColor: COLORS.border },
       ]}
     >
-      <Text style={[styles.name, { color: COLORS.text }]}>
-        {item.name}
-      </Text>
+      <Text style={[styles.name, { color: COLORS.text }]}>{item.name}</Text>
       <Text style={[styles.roll, { color: COLORS.muted }]}>
         Roll No: {item.roll_no}
       </Text>
@@ -88,130 +89,149 @@ export default function ViewSubmissions() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: COLORS.bg }]}>
-      {/* Header */}
+      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
+
         <Text style={[styles.headerTitle, { color: COLORS.text }]}>
           View Submissions
         </Text>
+
         <View style={{ width: 24 }} />
       </View>
 
-      {/* BODY */}
-      <View style={styles.body}>
-
-        {/* Submitted Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: "#22c55e" }]}>
+      {/* SEGMENTED CONTROL */}
+      <View style={styles.segment}>
+        <TouchableOpacity
+          style={[
+            styles.segmentItem,
+            activeTab === "submitted" && styles.segmentActive,
+          ]}
+          onPress={() => setActiveTab("submitted")}
+        >
+          <Text
+            style={[
+              styles.segmentText,
+              activeTab === "submitted" && styles.segmentTextActive,
+            ]}
+          >
             Submitted ({submitted.length})
           </Text>
+        </TouchableOpacity>
 
-          {submitted.length === 0 ? (
-            <Text style={[styles.emptyText, { color: COLORS.muted }]}>
-              No submissions yet
-            </Text>
-          ) : (
-            <FlatList
-              data={submitted}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => renderStudent(item)}
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator
-            />
-          )}
-        </View>
-
-        {/* Not Submitted Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: "#ef4444" }]}>
+        <TouchableOpacity
+          style={[
+            styles.segmentItem,
+            activeTab === "pending" && styles.segmentActive,
+          ]}
+          onPress={() => setActiveTab("pending")}
+        >
+          <Text
+            style={[
+              styles.segmentText,
+              activeTab === "pending" && styles.segmentTextActive,
+            ]}
+          >
             Not Submitted ({notSubmitted.length})
           </Text>
-
-          {notSubmitted.length === 0 ? (
-            <Text style={[styles.emptyText, { color: COLORS.muted }]}>
-              Everyone has submitted 🎉
-            </Text>
-          ) : (
-            <FlatList
-              data={notSubmitted}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => renderStudent(item)}
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator
-            />
-          )}
-        </View>
-
+        </TouchableOpacity>
       </View>
+
+      {/* LIST */}
+      <FlatList
+        data={data}
+        keyExtractor={(item) => item.id}
+        renderItem={renderStudent}
+        contentContainerStyle={{ padding: 16 }}
+        ListEmptyComponent={
+          <Text style={[styles.empty, { color: COLORS.muted }]}>
+            {activeTab === "submitted"
+              ? "No submissions yet"
+              : "Everyone has submitted 🎉"}
+          </Text>
+        }
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 12
-  },
+  container: { flex: 1 },
 
   center: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
 
+  /* HEADER FIX: stays below Wi-Fi / status bar */
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12
+    paddingHorizontal: 16,
+    paddingTop: 50,     // 👈 fixes overlap
+    paddingBottom: 8,
   },
 
   headerTitle: {
     fontSize: 18,
-    fontWeight: "700"
-  },
-
-  body: {
-    flex: 1,
-    gap: 12
-  },
-
-  section: {
-    flex: 1
-  },
-
-  sectionTitle: {
-    fontSize: 16,
     fontWeight: "700",
-    marginBottom: 8
   },
 
-  listContent: {
-    paddingBottom: 8
-  },
-
-  row: {
-    padding: 16,
+  /* SEGMENT */
+  segment: {
+    flexDirection: "row",
+    marginHorizontal: 16,
+    marginBottom: 10,
+    backgroundColor: "#0b1022",
     borderRadius: 14,
+    padding: 4,
+  },
+
+  segmentItem: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  segmentActive: {
+    backgroundColor: "#0ea5e9", // blue for BOTH tabs
+  },
+
+  segmentText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#9ca3af",
+  },
+
+  segmentTextActive: {
+    color: "#ffffff",
+  },
+
+  /* LIST */
+  card: {
+    padding: 16,
+    borderRadius: 16,
     borderWidth: 1,
-    marginBottom: 12
+    marginBottom: 12,
   },
 
   name: {
     fontSize: 16,
-    fontWeight: "600"
+    fontWeight: "600",
   },
 
   roll: {
     fontSize: 13,
-    marginTop: 4
+    marginTop: 4,
   },
 
-  emptyText: {
+  empty: {
     textAlign: "center",
-    marginTop: 12
-  }
+    marginTop: 40,
+  },
 });

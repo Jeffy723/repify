@@ -2,16 +2,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  Alert,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import { supabase } from "../lib/supabase";
 import { useTheme } from "./context/ThemeContext";
+import CommonDialog from "../components/CommonDialog";
 
 export default function SelectSemester() {
   const { dark, COLORS } = useTheme();
@@ -19,7 +19,14 @@ export default function SelectSemester() {
   const [semesters, setSemesters] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { loadSemesters(); }, []);
+  const [dialog, setDialog] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    loadSemesters();
+  }, []);
 
   const loadSemesters = async () => {
     const { data } = await supabase.from("semesters").select("id, name");
@@ -30,8 +37,17 @@ export default function SelectSemester() {
   const select = async (id: string) => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setDialog({
+          title: "Error",
+          message: "User session not found",
+        });
+        return;
+      }
 
       await supabase.from("profiles").update({ semester_id: id }).eq("id", user.id);
       await supabase.from("semesters").update({ is_active: false }).neq("id", id);
@@ -39,7 +55,10 @@ export default function SelectSemester() {
 
       router.replace("/(tabs)/home");
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      setDialog({
+        title: "Error",
+        message: error.message,
+      });
     } finally {
       setLoading(false);
     }
@@ -53,14 +72,14 @@ export default function SelectSemester() {
       fontSize: 32,
       fontWeight: "800",
       textAlign: "center",
-      color: COLORS.text
+      color: COLORS.text,
     },
     subtitle: {
       fontSize: 16,
       textAlign: "center",
       color: COLORS.muted,
       marginBottom: 40,
-      marginTop: 10
+      marginTop: 10,
     },
     semBtn: {
       padding: 20,
@@ -69,13 +88,13 @@ export default function SelectSemester() {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 15
+      marginBottom: 15,
     },
     txt: {
       color: dark ? "#052E16" : "#FFFFFF",
       fontSize: 18,
-      fontWeight: "700"
-    }
+      fontWeight: "700",
+    },
   });
 
   return (
@@ -87,7 +106,7 @@ export default function SelectSemester() {
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.accent} />
         ) : (
-          semesters.map(s => (
+          semesters.map((s) => (
             <TouchableOpacity
               key={s.id}
               style={styles.semBtn}
@@ -103,6 +122,13 @@ export default function SelectSemester() {
           ))
         )}
       </ScrollView>
+
+      <CommonDialog
+        visible={!!dialog}
+        title={dialog?.title ?? ""}
+        message={dialog?.message ?? ""}
+        onClose={() => setDialog(null)}
+      />
     </SafeAreaView>
   );
 }
