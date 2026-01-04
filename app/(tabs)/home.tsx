@@ -74,7 +74,6 @@ export default function Home() {
     }
   };
 
-  // ✅ reload whenever Home gains focus
   useFocusEffect(
     useCallback(() => {
       loadData();
@@ -106,34 +105,34 @@ export default function Home() {
           />
         }
       >
-        {/* Header */}
+        {/* HEADER */}
         <View style={styles.header}>
-          <View>
-            <Text style={[styles.greeting, { color: COLORS.muted }]}>
-              Welcome back,
-            </Text>
+          <Text style={[styles.greeting, { color: COLORS.muted }]}>
+            Welcome back,
+          </Text>
+
+          <View style={styles.nameRow}>
             <Text style={[styles.name, { color: COLORS.text }]}>
               {profile?.name ?? "CR"}
             </Text>
+
+            <TouchableOpacity
+              style={[
+                styles.iconBtn,
+                { backgroundColor: COLORS.card, borderColor: COLORS.border },
+              ]}
+              onPress={() => router.push("/profile")}
+            >
+              <Ionicons
+                name="person-outline"
+                size={22}
+                color={COLORS.primary}
+              />
+            </TouchableOpacity>
           </View>
-
-         <TouchableOpacity
-  style={[
-    styles.iconBtn,
-    { backgroundColor: COLORS.card, borderColor: COLORS.border },
-  ]}
-  onPress={() => router.push("/profile")}
->
-  <Ionicons
-    name="person-outline"
-    size={22}
-    color={COLORS.primary}
-  />
-</TouchableOpacity>
-
         </View>
 
-        {/* Semester */}
+        {/* SEMESTER */}
         <View
           style={[
             styles.semCard,
@@ -151,7 +150,7 @@ export default function Home() {
           <Ionicons name="school-outline" size={28} color={COLORS.primary} />
         </View>
 
-        {/* Subjects */}
+        {/* SUBJECTS */}
         <Text style={[styles.section, { color: COLORS.text }]}>Subjects</Text>
 
         {subjects.length === 0 ? (
@@ -179,9 +178,7 @@ export default function Home() {
                 <View style={styles.subjectIcon}>
                   <Ionicons name="book-outline" size={22} color="#6366f1" />
                 </View>
-                <Text
-                  style={[styles.subjectText, { color: COLORS.text }]}
-                >
+                <Text style={[styles.subjectText, { color: COLORS.text }]}>
                   {sub.name}
                 </Text>
               </TouchableOpacity>
@@ -198,14 +195,28 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   scroll: { padding: 20 },
 
+  /* HEADER */
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 30,
+    paddingTop: 50,       // pushes content down from status bar
+    paddingBottom: 20,
   },
-  greeting: { fontSize: 16 },
-  name: { fontSize: 28, fontWeight: "bold" },
+
+  greeting: {
+    fontSize: 16,
+    marginBottom: 6,
+  },
+
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  name: {
+    fontSize: 28,
+    fontWeight: "bold",
+    flex: 1,              // keeps icon on same line
+  },
 
   iconBtn: {
     width: 44,
@@ -214,8 +225,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
+    marginLeft: 12,
   },
 
+  /* SEMESTER CARD */
   semCard: {
     padding: 20,
     borderRadius: 20,
@@ -224,6 +237,7 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     borderWidth: 1,
   },
+
   semLabel: { fontSize: 14 },
   semValue: { fontSize: 20, fontWeight: "bold" },
 
