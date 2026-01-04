@@ -1,4 +1,5 @@
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useTheme } from "../app/context/ThemeContext";
 
 type Props = {
   visible: boolean;
@@ -13,20 +14,41 @@ export default function CommonDialog({
   message,
   onClose,
 }: Props) {
+  const { COLORS } = useTheme();
+
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
+      statusBarTranslucent
     >
       <View style={styles.overlay}>
-        <View style={styles.dialog}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.message}>{message}</Text>
+        <View
+          style={[
+            styles.box,
+            {
+              backgroundColor: COLORS.card,
+            },
+          ]}
+        >
+          <Text style={[styles.title, { color: COLORS.text }]}>
+            {title}
+          </Text>
 
-          <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>OK</Text>
+          <Text style={[styles.message, { color: COLORS.muted }]}>
+            {message}
+          </Text>
+
+          {/* CENTERED OK BUTTON */}
+          <TouchableOpacity
+            style={[
+              styles.okBtn,
+              { backgroundColor: COLORS.primary },
+            ]}
+            onPress={onClose}
+          >
+            <Text style={styles.okText}>OK</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -40,40 +62,40 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.55)",
     justifyContent: "center",
     alignItems: "center",
+    padding: 24,
   },
 
-  dialog: {
-    width: "85%",
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
+  box: {
+    width: "100%",
+    maxWidth: 340,
+    borderRadius: 20,
     padding: 22,
     alignItems: "center",
   },
 
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
-    marginBottom: 10,
+    marginBottom: 8,
     textAlign: "center",
   },
 
   message: {
     fontSize: 15,
-    color: "#444",
     textAlign: "center",
     marginBottom: 22,
   },
 
-  button: {
-    paddingHorizontal: 28,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: "#2563eb",
+  okBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 14,
   },
 
-  buttonText: {
+  okText: {
     color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
   },
 });
