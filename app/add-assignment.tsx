@@ -12,9 +12,9 @@ import {
   View,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import CommonDialog from "../components/CommonDialog";
 import { supabase } from "../lib/supabase";
 import { useTheme } from "./context/ThemeContext";
-import CommonDialog from "../components/CommonDialog";
 
 export default function AddAssignment() {
   const router = useRouter();
@@ -190,7 +190,10 @@ export default function AddAssignment() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 24 },
-  backBtn: { marginBottom: 20 },
+  backBtn: {
+   marginBottom: 20,
+   marginTop: 25,   // 👈 add this
+ },
 
   titleText: { fontSize: 28, fontWeight: "bold", marginBottom: 30 },
 
