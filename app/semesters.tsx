@@ -214,99 +214,92 @@ export default function Semesters() {
       />
 
       {dialog && (
-        <View
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundColor: "rgba(0,0,0,0.55)",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: 24,
-          }}
-        >
-          <View
+  <View
+    style={{
+      position: "absolute",
+      inset: 0,
+      backgroundColor: "rgba(0,0,0,0.55)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 24,
+    }}
+  >
+    <View
+      style={{
+        width: "100%",
+        borderRadius: 26,
+        backgroundColor: COLORS.card,
+        padding: 26,
+        shadowColor: "#000",
+        shadowOpacity: 0.25,
+        shadowRadius: 30,
+        elevation: 18,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 20,
+          fontWeight: "800",
+          color: COLORS.text,
+          textAlign: "center",
+        }}
+      >
+        {dialog.title}
+      </Text>
+
+      {dialog.title.includes("Activated") ? (
+        <>
+          <Text
             style={{
-              width: "100%",
-              borderRadius: 26,
-              backgroundColor: COLORS.card,
-              padding: 26,
-              shadowColor: "#000",
-              shadowOpacity: 0.25,
-              shadowRadius: 30,
-              elevation: 18,
+              fontSize: 24,
+              fontWeight: "900",
+              color: COLORS.text,
+              textAlign: "center",
+              marginVertical: 16,
             }}
           >
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: "800",
-                color: COLORS.text,
-                textAlign: "center",
-              }}
-            >
-              {dialog.title}
-            </Text>
-
-            {dialog.title.includes("Activated") ? (
-              <>
-                <Text
-                  style={{
-                    fontSize: 24,
-                    fontWeight: "900",
-                    color: COLORS.text,
-                    textAlign: "center",
-                    marginVertical: 16,
-                  }}
-                >
-                  {dialog.message}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: COLORS.muted,
-                    textAlign: "center",
-                    marginBottom: 22,
-                  }}
-                >
-                  is now your active semester
-                </Text>
-              </>
-            ) : (
-              <Text style={{ fontSize: 15, color: COLORS.muted, marginVertical: 20 }}>
-                {dialog.message}
-              </Text>
-            )}
-
-            <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
-              <TouchableOpacity
-                style={{
-                  paddingVertical: 10,
-                  paddingHorizontal: 18,
-                  borderRadius: 14,
-                  backgroundColor: COLORS.border,
-                }}
-                onPress={() => setDialog(null)}
-              >
-                <Text style={{ color: COLORS.text, fontWeight: "600" }}>Cancel</Text>
-              </TouchableOpacity>
-
-              {dialog.action && (
-                <TouchableOpacity
-                  style={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 20,
-                    borderRadius: 14,
-                    backgroundColor: COLORS.accent,
-                  }}
-                  onPress={dialog.action}
-                >
-                  <Text style={{ color: "#fff", fontWeight: "700" }}>Confirm</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </View>
+            {dialog.message}
+          </Text>
+          <Text
+            style={{
+              fontSize: 14,
+              color: COLORS.muted,
+              textAlign: "center",
+              marginBottom: 22,
+            }}
+          >
+            is now your active semester
+          </Text>
+        </>
+      ) : (
+        <Text
+          style={{
+            fontSize: 15,
+            color: COLORS.muted,
+            textAlign: "center",
+            marginVertical: 20,
+          }}
+        >
+          {dialog.message}
+        </Text>
       )}
+
+      <View style={{ alignItems: "center", marginTop: 18 }}>
+        <TouchableOpacity
+          style={{
+            paddingVertical: 12,
+            paddingHorizontal: 44,
+            borderRadius: 14,
+            backgroundColor: COLORS.primary,
+          }}
+          onPress={() => setDialog(null)}
+        >
+          <Text style={{ color: "#fff", fontWeight: "700" }}>OK</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+)}
     </SafeAreaView>
   );
 }

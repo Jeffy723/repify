@@ -1,7 +1,15 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { supabase } from "../../../lib/supabase";
+import CommonDialog from "../../../components/CommonDialog";
 
 export default function EditAssignment() {
   const { id } = useLocalSearchParams();
@@ -13,12 +21,23 @@ export default function EditAssignment() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const [dialog, setDialog] = useState<{
+    title: string;
+    message: string;
+    onClose?: () => void;
+  } | null>(null);
+
   useEffect(() => {
     loadAssignment();
   }, []);
 
   const loadAssignment = async () => {
-    const { data } = await supabase.from("assignments").select("*").eq("id", id).single();
+    const { data } = await supabase
+      .from("assignments")
+      .select("*")
+      .eq("id", id)
+      .single();
+
     if (data) {
       setTitle(data.title);
       setSubject(data.subject);
@@ -29,8 +48,13 @@ export default function EditAssignment() {
 
   const handleSave = async () => {
     if (!title || !subject || !dueDate) {
-      return Alert.alert("Error", "Please fill all fields");
+      setDialog({
+        title: "Error",
+        message: "Please fill all fields",
+      });
+      return;
     }
+
     setSaving(true);
 
     const { error } = await supabase
@@ -39,26 +63,74 @@ export default function EditAssignment() {
       .eq("id", id);
 
     setSaving(false);
-    if (error) return Alert.alert("Update failed", error.message);
 
-    Alert.alert("Updated 🎉", "Assignment has been updated");
+    if (error) {
+      setDialog({
+        title: "Update failed",
+        message: error.message,
+      });
+      return;
+    }
 
-    // 🟢 Redirect back & refresh list
-    router.replace("/(tabs)/assignments");
+    setDialog({
+      title: "Updated 🎉",
+      message: "Assignment has been updated",
+      onClose: () => router.replace("/(tabs)/assignments"),
+    });
   };
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" /></View>;
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>✏ Edit Assignment</Text>
-      <TextInput style={styles.input} placeholder="Title" value={title} onChangeText={setTitle} />
-      <TextInput style={styles.input} placeholder="Subject" value={subject} onChangeText={setSubject} />
-      <TextInput style={styles.input} placeholder="Due Date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} />
 
-      <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
-        <Text style={styles.saveText}>{saving ? "Saving..." : "💾 Save"}</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Title"
+        value={title}
+        onChangeText={setTitle}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Subject"
+        value={subject}
+        onChangeText={setSubject}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Due Date (YYYY-MM-DD)"
+        value={dueDate}
+        onChangeText={setDueDate}
+      />
+
+      <TouchableOpacity
+        style={styles.saveBtn}
+        onPress={handleSave}
+        disabled={saving}
+      >
+        <Text style={styles.saveText}>
+          {saving ? "Saving..." : "💾 Save"}
+        </Text>
       </TouchableOpacity>
+
+      <CommonDialog
+        visible={!!dialog}
+        title={dialog?.title ?? ""}
+        message={dialog?.message ?? ""}
+        onClose={() => {
+          dialog?.onClose?.();
+          setDialog(null);
+        }}
+      />
     </View>
   );
 }
@@ -67,7 +139,23 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "white" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: { fontSize: 26, fontWeight: "bold", marginBottom: 16 },
-  input: { borderWidth: 1, borderColor: "#ccc", padding: 14, borderRadius: 8, marginBottom: 12, fontSize: 16 },
-  saveBtn: { backgroundColor: "#007AFF", padding: 16, borderRadius: 10 },
-  saveText: { color: "white", textAlign: "center", fontSize: 18, fontWeight: "600" },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 14,
+    borderRadius: 8,
+    marginBottom: 12,
+    fontSize: 16,
+  },
+  saveBtn: {
+    backgroundColor: "#007AFF",
+    padding: 16,
+    borderRadius: 10,
+  },
+  saveText: {
+    color: "white",
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "600",
+  },
 });
