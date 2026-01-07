@@ -58,7 +58,7 @@ The app focuses on clarity, usability, and a distraction-free interface.
 
 ## 🚀 Getting Started
 
-### 1. Clone the repository
+1. Clone the repository
 ```bash
 git clone https://github.com/your-username/repify.git
 cd repify
@@ -75,7 +75,3 @@ cd repify
    ```bash
    npx expo start -c
    ```
-
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
