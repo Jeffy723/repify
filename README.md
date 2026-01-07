@@ -59,10 +59,10 @@ The app focuses on clarity, usability, and a distraction-free interface.
 ## 🚀 Getting Started
 
 1. Clone the repository
-```bash
-git clone https://github.com/your-username/repify.git
-cd repify
-```
+   ```bash
+   git clone https://github.com/your-username/repify.git
+   cd repify
+   ```
 
 2. Install dependencies
 
