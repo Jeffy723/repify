@@ -220,7 +220,7 @@ export default function Subjects() {
                 }}
                 onPress={() => setDialog(null)}
               >
-                <Text style={{ color: COLORS.text, fontWeight: "600" }}>OK</Text>
+                <Text style={{ color: COLORS.text, fontWeight: "600" }}>Cancel</Text>
               </TouchableOpacity>
 
               {dialog.action && (
