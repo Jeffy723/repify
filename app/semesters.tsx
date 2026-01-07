@@ -54,35 +54,35 @@ export default function Semesters() {
     }
   };
 
-  const deleteSemester = async (id: string, isActive: boolean) => {
-    if (isActive)
-      return setDialog({
-        title: "Not allowed",
-        message: "You cannot delete the active semester.",
-      });
-
-    const { data: subjects } = await supabase
-      .from("subjects")
-      .select("id")
-      .eq("semester_id", id)
-      .limit(1);
-
-    if (subjects?.length)
-      return setDialog({
-        title: "Cannot delete",
-        message: "This semester has subjects.",
-      });
-
-    setDialog({
-      title: "Delete Semester",
-      message: "Are you sure you want to delete this semester?",
-      action: async () => {
-        await supabase.from("semesters").delete().eq("id", id);
-        load();
-        setDialog(null);
-      },
+const deleteSemester = async (id: string, isActive: boolean) => {
+  if (isActive) {
+    return setDialog({
+      title: "Not allowed",
+      message: "You cannot delete the active semester.",
     });
-  };
+  }
+
+  setDialog({
+    title: "Delete Semester",
+    message: "Are you sure you want to delete this semester?",
+    action: async () => {
+      const { error } = await supabase.rpc("delete_semester_safe", {
+        p_semester_id: id, // 👈 ONLY THIS SEMESTER
+      });
+
+      if (error) {
+        setDialog({
+          title: "Delete failed",
+          message: error.message,
+        });
+        return;
+      }
+
+      load();        // reload list
+      setDialog(null);
+    },
+  });
+};
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.bg },
@@ -181,7 +181,8 @@ export default function Semesters() {
               <Text style={styles.semValue}>{item.name}</Text>
               {item.is_active && <Text style={styles.badge}>ACTIVE</Text>}
             </View>
-
+            
+            
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <TouchableOpacity
                 style={styles.openBtn}
@@ -201,13 +202,18 @@ export default function Semesters() {
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity
-                onPress={() => deleteSemester(item.id, item.is_active)}
-                disabled={item.is_active}
-                style={{ opacity: item.is_active ? 0.4 : 1 }}
-              >
-                <Ionicons name="trash-outline" size={22} color="#ef4444" />
-              </TouchableOpacity>
+             {!item.is_active && (
+  <TouchableOpacity
+    onPress={() => deleteSemester(item.id, item.is_active)}
+  >
+    <Ionicons
+      name="trash-outline"
+      size={22}
+      color="#ef4444"
+    />
+  </TouchableOpacity>
+)}
+
             </View>
           </View>
         )}
@@ -284,19 +290,66 @@ export default function Semesters() {
         </Text>
       )}
 
-      <View style={{ alignItems: "center", marginTop: 18 }}>
-        <TouchableOpacity
-          style={{
-            paddingVertical: 12,
-            paddingHorizontal: 44,
-            borderRadius: 14,
-            backgroundColor: COLORS.primary,
-          }}
-          onPress={() => setDialog(null)}
-        >
-          <Text style={{ color: "#fff", fontWeight: "700" }}>OK</Text>
-        </TouchableOpacity>
-      </View>
+     <View style={{ alignItems: "center", marginTop: 20 }}>
+  {dialog.action ? (
+    // 🔴 Delete confirmation dialog
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        width: "100%",
+      }}
+    >
+      {/* Cancel */}
+      <TouchableOpacity
+        style={{
+          paddingVertical: 12,
+          paddingHorizontal: 30,
+          borderRadius: 14,
+          borderWidth: 1,
+          borderColor: COLORS.border,
+        }}
+        onPress={() => setDialog(null)}
+      >
+        <Text style={{ color: COLORS.text, fontWeight: "700" }}>
+          Cancel
+        </Text>
+      </TouchableOpacity>
+
+      {/* Delete */}
+      <TouchableOpacity
+        style={{
+          paddingVertical: 12,
+          paddingHorizontal: 30,
+          borderRadius: 14,
+          backgroundColor: "#ef4444",
+        }}
+        onPress={dialog.action}
+      >
+        <Text style={{ color: "#fff", fontWeight: "700" }}>
+          Delete
+        </Text>
+      </TouchableOpacity>
+    </View>
+  ) : (
+    // 🟢 Info / success dialog (Activate, Error, etc.)
+    <TouchableOpacity
+      style={{
+        paddingVertical: 12,
+        paddingHorizontal: 44,
+        borderRadius: 14,
+        backgroundColor: "#3b82f6",
+      }}
+      onPress={() => setDialog(null)}
+    >
+      <Text style={{ color: "#ffffffff", fontWeight: "700" }}>
+        OK
+      </Text>
+    </TouchableOpacity>
+  )}
+</View>
+
+
     </View>
   </View>
 )}
